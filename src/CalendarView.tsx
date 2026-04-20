@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { Plus, GripVertical } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { Task, Category, Session } from './types';
-import { SESSIONS, SESSION_ICONS, TASK_COLORS } from './types';
+import { SESSIONS, SESSION_ICONS } from './types';
 import { formatDateVN, isToday, formatDate } from './utils';
 
 interface Props {
@@ -76,7 +76,7 @@ export default function CalendarView({ tasks, dates, categories, filterCategory,
     window.addEventListener('mouseup', onUp);
   };
 
-  const getColorInfo = (color: string) => TASK_COLORS.find(c => c.value === color);
+
   const getCategoryColor = (catName: string) => categories.find(c => c.name === catName)?.color || '#6b7280';
 
   return (

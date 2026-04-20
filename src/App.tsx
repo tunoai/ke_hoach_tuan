@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Calendar, BarChart3, Lightbulb, Bell, ChevronLeft, ChevronRight,
-  Plus, X, Settings, Filter
+  Plus, X
 } from 'lucide-react';
 import type { Task, IdeaNote, Category, Session, TabType } from './types';
-import { SESSIONS, TASK_COLORS, DEFAULT_CATEGORIES } from './types';
+import { TASK_COLORS } from './types';
 import {
   loadTasks, saveTasks, loadCategories, saveCategories,
   loadIdeas, saveIdeas, getWeekDates, formatDate, formatDateFull, generateId

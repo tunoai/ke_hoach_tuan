@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 import type { Task, Category, Session } from './types';
 import { SESSIONS, TASK_COLORS } from './types';
-import { generateId, formatDate } from './utils';
+import { generateId } from './utils';
 
 interface Props {
   task: Task | null;
