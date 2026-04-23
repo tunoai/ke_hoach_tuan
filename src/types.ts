@@ -7,7 +7,7 @@ export interface Task {
   title: string;
   description: string;
   date: string; // ISO date string YYYY-MM-DD
-  session: 'Sáng' | 'Chiều' | 'Tối';
+  session: 'Sáng' | 'Chiều' | 'Tối' | 'Phát sinh';
   category: string;
   color: string;
   progress: number; // 0-100
@@ -45,7 +45,7 @@ export interface Reminder {
 
 export type TabType = 'calendar' | 'summary' | 'ideas' | 'reminders';
 
-export type Session = 'Sáng' | 'Chiều' | 'Tối';
+export type Session = 'Sáng' | 'Chiều' | 'Tối' | 'Phát sinh';
 
 export const SESSIONS: Session[] = ['Sáng', 'Chiều', 'Tối'];
 
@@ -53,16 +53,17 @@ export const SESSION_ICONS: Record<Session, string> = {
   'Sáng': '🌅',
   'Chiều': '☀️',
   'Tối': '🌙',
+  'Phát sinh': '⚡',
 };
 
 export const TASK_COLORS = [
-  { value: '#ef4444', label: 'Đỏ - Việc gấp', emoji: '🔴' },
-  { value: '#f59e0b', label: 'Vàng - Cần theo dõi', emoji: '🟡' },
-  { value: '#22c55e', label: 'Xanh lá - Đã ổn', emoji: '🟢' },
-  { value: '#8b5cf6', label: 'Tím - Ý tưởng', emoji: '🟣' },
-  { value: '#3b82f6', label: 'Xanh dương - Thường', emoji: '🔵' },
-  { value: '#ec4899', label: 'Hồng - Cá nhân', emoji: '🩷' },
-  { value: '#64748b', label: 'Xám - Khác', emoji: '⚪' },
+  { value: '#ef4444', label: 'Gấp', emoji: '🔴' },
+  { value: '#f59e0b', label: 'Theo dõi', emoji: '🟡' },
+  { value: '#22c55e', label: 'Đã ổn', emoji: '🟢' },
+  { value: '#8b5cf6', label: 'Ý tưởng', emoji: '🟣' },
+  { value: '#3b82f6', label: 'Thường', emoji: '🔵' },
+  { value: '#ec4899', label: 'Cá nhân', emoji: '🩷' },
+  { value: '#64748b', label: 'Khác', emoji: '⚪' },
 ];
 
 export const DEFAULT_CATEGORIES: Category[] = [

@@ -172,6 +172,67 @@ export default function CalendarView({ tasks, dates, categories, filterCategory,
           })}
         </>
       ))}
+
+      {/* Phát sinh row */}
+      <div className="session-label phatsinh">
+        <span className="emoji">{SESSION_ICONS['Phát sinh']}</span>
+        <span>Phát sinh</span>
+      </div>
+      {dates.map(d => {
+        const dateStr = formatDate(d);
+        const cellKey = `${dateStr}-Phát sinh`;
+        const cellTasks = getTasksForCell(dateStr, 'Phát sinh' as Session);
+        const today = isToday(d);
+        const h = cellHeights[cellKey] || 100;
+
+        return (
+          <div
+            key={cellKey}
+            className={`cal-cell phatsinh ${today ? 'today' : ''} ${dragOverCell === cellKey ? 'drag-over' : ''}`}
+            style={{ minHeight: `${h}px` }}
+            onDragOver={e => handleDragOver(e, cellKey)}
+            onDragLeave={() => setDragOverCell(null)}
+            onDrop={e => handleDrop(e, dateStr, 'Phát sinh' as Session)}
+            onClick={() => { if (cellTasks.length === 0) onOpenModal(dateStr, 'Phát sinh' as Session); }}
+          >
+            {cellTasks.map(task => (
+              <div
+                key={task.id}
+                className="task-card"
+                style={{ borderLeftColor: task.color }}
+                draggable
+                onDragStart={e => handleDragStart(e, task.id)}
+                onDragEnd={handleDragEnd}
+                onClick={e => { e.stopPropagation(); onOpenModal(dateStr, 'Phát sinh' as Session, task); }}
+              >
+                <div className="task-card-header">
+                  <div className="task-color-dot" style={{ background: task.color }} />
+                  <span className={`task-card-title ${task.completed || task.progress === 100 ? 'done' : ''}`}>
+                    {task.title}
+                  </span>
+                </div>
+                <div className="task-card-meta">
+                  <span className="task-card-category" style={{
+                    color: '#f59e0b',
+                    background: '#f59e0b18'
+                  }}>việc phát sinh</span>
+                  <span>{task.progress}%</span>
+                </div>
+              </div>
+            ))}
+            <button className="add-task-inline" onClick={e => { e.stopPropagation(); onOpenModal(dateStr, 'Phát sinh' as Session); }}>
+              <Plus size={14} /> Thêm
+            </button>
+            <div
+              style={{
+                position: 'absolute', bottom: 0, right: 0, width: '100%', height: 6,
+                cursor: 'row-resize', background: 'transparent'
+              }}
+              onMouseDown={e => handleResizeStart(e, cellKey, h)}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

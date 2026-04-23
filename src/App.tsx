@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Calendar, BarChart3, Lightbulb, Bell, ChevronLeft, ChevronRight,
-  Plus, X, Edit2
+  Plus, X, Edit2, Menu
 } from 'lucide-react';
 import type { Task, IdeaNote, Category, Session, TabType } from './types';
 import { TASK_COLORS } from './types';
@@ -23,6 +23,7 @@ import './index.css';
 
 export default function App() {
   const [tab, setTab] = useState<TabType>('calendar');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(loadTasks);
   const [ideas, setIdeas] = useState<IdeaNote[]>(loadIdeas);
   const [categories, setCategories] = useState<Category[]>(loadCategories);
@@ -185,26 +186,32 @@ export default function App() {
 
   return (
     <div className="app-layout">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
           <Calendar size={22} />
           Kế Hoạch Tuần
+          <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
           <div className="sidebar-section">Chính</div>
-          <button className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} onClick={() => setTab('calendar')}>
+          <button className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} onClick={() => { setTab('calendar'); setSidebarOpen(false); }}>
             <Calendar size={18} /> Lịch công việc
           </button>
-          <button className={`nav-item ${tab === 'summary' ? 'active' : ''}`} onClick={() => setTab('summary')}>
+          <button className={`nav-item ${tab === 'summary' ? 'active' : ''}`} onClick={() => { setTab('summary'); setSidebarOpen(false); }}>
             <BarChart3 size={18} /> Tổng kết tiến độ
           </button>
-          <button className={`nav-item ${tab === 'ideas' ? 'active' : ''}`} onClick={() => setTab('ideas')}>
+          <button className={`nav-item ${tab === 'ideas' ? 'active' : ''}`} onClick={() => { setTab('ideas'); setSidebarOpen(false); }}>
             <Lightbulb size={18} /> Ý tưởng nhanh
             {ideas.length > 0 && <span className="nav-badge" style={{ background: '#8b5cf6' }}>{ideas.length}</span>}
           </button>
-          <button className={`nav-item ${tab === 'reminders' ? 'active' : ''}`} onClick={() => setTab('reminders')}>
+          <button className={`nav-item ${tab === 'reminders' ? 'active' : ''}`} onClick={() => { setTab('reminders'); setSidebarOpen(false); }}>
             <Bell size={18} /> Nhắc nhở
             {reminderCount > 0 && <span className="nav-badge">{reminderCount}</span>}
           </button>
@@ -212,7 +219,7 @@ export default function App() {
           <div className="sidebar-section" style={{ marginTop: 24 }}>Hạng mục</div>
           {categories.map(cat => (
             <button key={cat.id} className={`nav-item ${filterCategory === cat.name ? 'active' : ''}`}
-              onClick={() => { setFilterCategory(filterCategory === cat.name ? '' : cat.name); setTab('calendar'); }}>
+              onClick={() => { setFilterCategory(filterCategory === cat.name ? '' : cat.name); setTab('calendar'); setSidebarOpen(false); }}>
               <span style={{ width: 12, height: 12, borderRadius: 3, background: cat.color, flexShrink: 0 }} />
               {cat.name}
             </button>
@@ -226,6 +233,9 @@ export default function App() {
       {/* Main */}
       <main className="main-content">
         <header className="main-header">
+          <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+            <Menu size={22} />
+          </button>
           {tab === 'calendar' ? (
             <>
               <div className="week-nav">

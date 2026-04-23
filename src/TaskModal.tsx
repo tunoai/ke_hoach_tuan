@@ -87,7 +87,7 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
             <div className="form-group">
               <label className="form-label">Buổi</label>
               <select value={taskSession} onChange={e => setTaskSession(e.target.value as Session)}>
-                {SESSIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                {[...SESSIONS, 'Phát sinh' as Session].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
@@ -108,11 +108,15 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
             <div className="color-picker">
               {TASK_COLORS.map(c => (
                 <div key={c.value}
-                  className={`color-dot ${color === c.value ? 'selected' : ''}`}
-                  style={{ background: c.value }}
-                  onClick={() => setColor(c.value)}
-                  title={c.label}>
-                  {color === c.value && <Check size={14} />}
+                  className={`color-tag ${color === c.value ? 'selected' : ''}`}
+                  style={{
+                    background: color === c.value ? c.value : c.value + '18',
+                    color: color === c.value ? '#fff' : c.value,
+                    borderColor: c.value,
+                  }}
+                  onClick={() => setColor(c.value)}>
+                  {color === c.value && <Check size={12} />}
+                  {c.label}
                 </div>
               ))}
             </div>
