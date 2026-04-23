@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Calendar, BarChart3, Lightbulb, Bell, ChevronLeft, ChevronRight,
-  Plus, X
+  Plus, X, Edit2
 } from 'lucide-react';
 import type { Task, IdeaNote, Category, Session, TabType } from './types';
 import { TASK_COLORS } from './types';
@@ -45,6 +45,9 @@ export default function App() {
   const [showCatManager, setShowCatManager] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [newCatColor, setNewCatColor] = useState('#3b82f6');
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [editCatName, setEditCatName] = useState('');
+  const [editCatColor, setEditCatColor] = useState('#000000');
 
   // Notifications
   const [notifications, setNotifications] = useState<{ id: string; title: string }[]>([]);
@@ -149,6 +152,22 @@ export default function App() {
   };
   const removeCategory = (id: string) => {
     deleteCategoryFromFirebase(id);
+  };
+  
+  const startEditCategory = (cat: Category) => {
+    setEditingCatId(cat.id);
+    setEditCatName(cat.name);
+    setEditCatColor(cat.color);
+  };
+
+  const saveEditCategory = () => {
+    if (!editCatName.trim() || !editingCatId) return;
+    saveCategoryToFirebase({ id: editingCatId, name: editCatName.trim(), color: editCatColor });
+    setEditingCatId(null);
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCatId(null);
   };
 
   // Count reminders
@@ -295,10 +314,29 @@ export default function App() {
             <div className="modal-body">
               <div className="cat-list">
                 {categories.map(cat => (
-                  <div key={cat.id} className="cat-item">
-                    <span className="cat-color" style={{ background: cat.color }} />
-                    <span className="cat-name">{cat.name}</span>
-                    <button className="cat-del" onClick={() => removeCategory(cat.id)}><X size={14} /></button>
+                  <div key={cat.id} className="cat-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', borderBottom: '1px solid #eee' }}>
+                    {editingCatId === cat.id ? (
+                      <div style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'center' }}>
+                        <input type="color" value={editCatColor} onChange={e => setEditCatColor(e.target.value)}
+                          style={{ width: 30, height: 30, padding: 0, cursor: 'pointer', border: 'none', borderRadius: '4px' }} />
+                        <input type="text" value={editCatName} onChange={e => setEditCatName(e.target.value)}
+                          style={{ flex: 1, padding: '4px 8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                          onKeyDown={e => e.key === 'Enter' && saveEditCategory()} autoFocus />
+                        <button className="btn btn-primary btn-sm" onClick={saveEditCategory} style={{ padding: '4px 8px', fontSize: '12px' }}>Lưu</button>
+                        <button className="btn btn-ghost btn-sm" onClick={cancelEditCategory} style={{ padding: '4px' }}><X size={14} /></button>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="cat-color" style={{ background: cat.color, width: 16, height: 16, borderRadius: 4, display: 'inline-block' }} />
+                          <span className="cat-name">{cat.name}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button className="cat-del" onClick={() => startEditCategory(cat)} title="Sửa" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}><Edit2 size={14} /></button>
+                          <button className="cat-del" onClick={() => removeCategory(cat.id)} title="Xóa" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}><X size={14} /></button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
