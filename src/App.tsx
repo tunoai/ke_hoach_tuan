@@ -9,6 +9,11 @@ import {
   loadTasks, saveTasks, loadCategories, saveCategories,
   loadIdeas, saveIdeas, getWeekDates, formatDate, formatDateFull, generateId
 } from './utils';
+import {
+  subscribeToTasks, saveTaskToFirebase, deleteTaskFromFirebase,
+  subscribeToIdeas, saveIdeaToFirebase, deleteIdeaFromFirebase,
+  subscribeToCategories, saveCategoryToFirebase, deleteCategoryFromFirebase
+} from './firebaseService';
 import CalendarView from './CalendarView';
 import TaskModal from './TaskModal';
 import SummaryView from './SummaryView';
@@ -44,7 +49,22 @@ export default function App() {
   // Notifications
   const [notifications, setNotifications] = useState<{ id: string; title: string }[]>([]);
 
-  // Persist
+  // Firebase Sync
+  useEffect(() => {
+    const unsubTasks = subscribeToTasks(setTasks);
+    const unsubIdeas = subscribeToIdeas(setIdeas);
+    const unsubCategories = subscribeToCategories((cats) => {
+      if (cats.length > 0) setCategories(cats);
+    });
+
+    return () => {
+      unsubTasks();
+      unsubIdeas();
+      unsubCategories();
+    };
+  }, []);
+
+  // Persist local as backup (optional)
   useEffect(() => { saveTasks(tasks); }, [tasks]);
   useEffect(() => { saveIdeas(ideas); }, [ideas]);
   useEffect(() => { saveCategories(categories); }, [categories]);
@@ -94,39 +114,41 @@ export default function App() {
   }, []);
 
   const handleSaveTask = (task: Task) => {
-    setTasks(prev => {
-      const exists = prev.find(t => t.id === task.id);
-      if (exists) return prev.map(t => t.id === task.id ? task : t);
-      return [...prev, task];
-    });
+    saveTaskToFirebase(task);
     setModalOpen(false);
   };
 
   const handleDeleteTask = (id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
+    deleteTaskFromFirebase(id);
     setModalOpen(false);
   };
 
   const handleMoveTask = (taskId: string, newDate: string, newSession: Session) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, date: newDate, session: newSession } : t));
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      saveTaskToFirebase({ ...task, date: newDate, session: newSession });
+    }
   };
 
   // Reminder dismiss
   const dismissTaskReminder = (taskId: string) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, reminder: '' } : t));
+    const task = tasks.find(t => t.id === taskId);
+    if (task) saveTaskToFirebase({ ...task, reminder: '' });
   };
   const dismissIdeaReminder = (ideaId: string) => {
-    setIdeas(prev => prev.map(i => i.id === ideaId ? { ...i, reminder: '' } : i));
+    const idea = ideas.find(i => i.id === ideaId);
+    if (idea) saveIdeaToFirebase({ ...idea, reminder: '' });
   };
 
   // Category management
   const addCategory = () => {
     if (!newCatName.trim()) return;
-    setCategories(prev => [...prev, { id: generateId(), name: newCatName.trim(), color: newCatColor }]);
+    const newCat = { id: generateId(), name: newCatName.trim(), color: newCatColor };
+    saveCategoryToFirebase(newCat);
     setNewCatName('');
   };
   const removeCategory = (id: string) => {
-    setCategories(prev => prev.filter(c => c.id !== id));
+    deleteCategoryFromFirebase(id);
   };
 
   // Count reminders
@@ -233,7 +255,15 @@ export default function App() {
             <SummaryView tasks={tasks} categories={categories} currentMonth={currentMonth} currentYear={currentYear} />
           )}
           {tab === 'ideas' && (
-            <IdeasView ideas={ideas} onSave={setIdeas} />
+            <IdeasView 
+              ideas={ideas} 
+              onSave={(newIdeas) => {
+                // For bulk save from IdeasView if needed, or update individual
+                setIdeas(newIdeas);
+              }} 
+              onSaveIdea={saveIdeaToFirebase}
+              onDeleteIdea={deleteIdeaFromFirebase}
+            />
           )}
           {tab === 'reminders' && (
             <RemindersView tasks={tasks} ideas={ideas} onDismissTask={dismissTaskReminder} onDismissIdea={dismissIdeaReminder} />

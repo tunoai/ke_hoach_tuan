@@ -6,9 +6,11 @@ import { generateId, fileToBase64, resizeImage } from './utils';
 interface Props {
   ideas: IdeaNote[];
   onSave: (ideas: IdeaNote[]) => void;
+  onSaveIdea?: (idea: IdeaNote) => void;
+  onDeleteIdea?: (id: string) => void;
 }
 
-export default function IdeasView({ ideas, onSave }: Props) {
+export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [editIdea, setEditIdea] = useState<IdeaNote | null>(null);
   const [search, setSearch] = useState('');
@@ -63,16 +65,24 @@ export default function IdeasView({ ideas, onSave }: Props) {
       createdAt: editIdea?.createdAt || new Date().toISOString(),
       reminder,
     };
-    if (editIdea) {
-      onSave(ideas.map(i => i.id === editIdea.id ? newIdea : i));
+    if (onSaveIdea) {
+      onSaveIdea(newIdea);
     } else {
-      onSave([newIdea, ...ideas]);
+      if (editIdea) {
+        onSave(ideas.map(i => i.id === editIdea.id ? newIdea : i));
+      } else {
+        onSave([newIdea, ...ideas]);
+      }
     }
     setShowModal(false);
   };
 
   const handleDelete = (id: string) => {
-    onSave(ideas.filter(i => i.id !== id));
+    if (onDeleteIdea) {
+      onDeleteIdea(id);
+    } else {
+      onSave(ideas.filter(i => i.id !== id));
+    }
     setShowModal(false);
   };
 
