@@ -62,7 +62,7 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={() => { if (!title.trim()) onClose(); }}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{task ? 'Chỉnh sửa công việc' : 'Thêm công việc mới'}</h3>
