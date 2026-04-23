@@ -193,7 +193,7 @@ export default function App() {
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
           <Calendar size={22} />
-          Kế Hoạch Tuần
+          Sếp Của Tùng
           <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>
             <X size={20} />
           </button>
