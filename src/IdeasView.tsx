@@ -18,6 +18,7 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
 
   // Form
   const [images, setImages] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [tagsInput, setTagsInput] = useState('');
@@ -49,13 +50,21 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    const newImages: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const b64 = await fileToBase64(files[i]);
-      const resized = await resizeImage(b64);
-      newImages.push(resized);
+    setIsUploading(true);
+    try {
+      const newImages: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const b64 = await fileToBase64(files[i]);
+        const resized = await resizeImage(b64);
+        newImages.push(resized);
+      }
+      setImages(prev => [...prev, ...newImages]);
+    } catch (error) {
+      console.error("Lỗi khi xử lý ảnh", error);
+    } finally {
+      setIsUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
     }
-    setImages(prev => [...prev, ...newImages]);
   };
 
   const handleSave = () => {
@@ -170,8 +179,8 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
                       </button>
                     </div>
                   ))}
-                  <div className="upload-zone" onClick={() => fileRef.current?.click()} style={{ width: 80, height: 80, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: 0 }}>
-                    <Upload size={20} />
+                  <div className="upload-zone" onClick={() => !isUploading && fileRef.current?.click()} style={{ width: 80, height: 80, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: 0, opacity: isUploading ? 0.5 : 1, cursor: isUploading ? 'wait' : 'pointer' }}>
+                    {isUploading ? <span style={{ fontSize: '0.7rem' }}>Đang tải...</span> : <Upload size={20} />}
                   </div>
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFile} style={{ display: 'none' }} />
