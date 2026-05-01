@@ -17,7 +17,7 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
   const [filterTag, setFilterTag] = useState('');
 
   // Form
-  const [image, setImage] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [tagsInput, setTagsInput] = useState('');
@@ -34,31 +34,37 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
 
   const openNew = () => {
     setEditIdea(null);
-    setImage(''); setTitle(''); setDesc(''); setTagsInput(''); setReminder('');
+    setImages([]); setTitle(''); setDesc(''); setTagsInput(''); setReminder('');
     setShowModal(true);
   };
 
   const openEdit = (idea: IdeaNote) => {
     setEditIdea(idea);
-    setImage(idea.image); setTitle(idea.title); setDesc(idea.description);
+    setImages(idea.images && idea.images.length > 0 ? idea.images : (idea.image ? [idea.image] : []));
+    setTitle(idea.title); setDesc(idea.description);
     setTagsInput(idea.tags.join(', ')); setReminder(idea.reminder);
     setShowModal(true);
   };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const b64 = await fileToBase64(file);
-    const resized = await resizeImage(b64);
-    setImage(resized);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const newImages: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const b64 = await fileToBase64(files[i]);
+      const resized = await resizeImage(b64);
+      newImages.push(resized);
+    }
+    setImages(prev => [...prev, ...newImages]);
   };
 
   const handleSave = () => {
-    if (!title.trim() && !image) return;
+    if (!title.trim() && images.length === 0) return;
     const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
     const newIdea: IdeaNote = {
       id: editIdea?.id || generateId(),
-      image,
+      image: images[0] || '',
+      images: images,
       title: title.trim(),
       description: desc,
       tags,
@@ -114,10 +120,17 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
         </div>
       ) : (
         <div className="ideas-grid">
-          {filtered.map(idea => (
+          {filtered.map(idea => {
+            const displayImg = (idea.images && idea.images.length > 0) ? idea.images[0] : idea.image;
+            return (
             <div key={idea.id} className="idea-card" onClick={() => openEdit(idea)}>
-              {idea.image ? (
-                <img src={idea.image} alt={idea.title} className="idea-card-img" />
+              {displayImg ? (
+                <div style={{ position: 'relative' }}>
+                  <img src={displayImg} alt={idea.title} className="idea-card-img" style={{ display: 'block' }} />
+                  {idea.images && idea.images.length > 1 && (
+                    <span style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600 }}>+{idea.images.length - 1} ảnh</span>
+                  )}
+                </div>
               ) : (
                 <div className="idea-card-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', background: '#f4f5f7' }}>💡</div>
               )}
@@ -133,7 +146,8 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -147,20 +161,20 @@ export default function IdeasView({ ideas, onSave, onSaveIdea, onDeleteIdea }: P
             <div className="modal-body">
               <div className="form-group">
                 <label className="form-label">Ảnh</label>
-                {image ? (
-                  <div style={{ position: 'relative', marginBottom: 8 }}>
-                    <img src={image} alt="preview" style={{ width: '100%', maxHeight: 240, objectFit: 'cover', borderRadius: 8 }} />
-                    <button onClick={() => setImage('')} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: 'white', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <X size={14} />
-                    </button>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                  {images.map((img, idx) => (
+                    <div key={idx} style={{ position: 'relative', width: 80, height: 80 }}>
+                      <img src={img} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+                      <button onClick={() => setImages(images.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', color: 'white', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', padding: 0 }}>
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="upload-zone" onClick={() => fileRef.current?.click()} style={{ width: 80, height: 80, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: 0 }}>
+                    <Upload size={20} />
                   </div>
-                ) : (
-                  <div className="upload-zone" onClick={() => fileRef.current?.click()}>
-                    <Upload size={28} />
-                    <p>Click để chọn ảnh hoặc kéo thả</p>
-                  </div>
-                )}
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFile} style={{ display: 'none' }} />
               </div>
               <div className="form-group">
                 <label className="form-label">Tiêu đề</label>

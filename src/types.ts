@@ -20,7 +20,8 @@ export interface Task {
 
 export interface IdeaNote {
   id: string;
-  image: string; // base64 data URL
+  image: string; // base64 data URL (kept for backward compatibility)
+  images?: string[]; // Array of base64 data URLs
   title: string;
   description: string;
   tags: string[];
