@@ -23,7 +23,11 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 }
 
 function saveToStorage<T>(key: string, data: T) {
-  localStorage.setItem(key, JSON.stringify(data));
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error(`Lỗi khi lưu vào localStorage (có thể bị đầy bộ nhớ):`, error);
+  }
 }
 
 // ---- Tasks ----
